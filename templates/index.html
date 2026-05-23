@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C++ 学习助手</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <button id="menu-btn" class="menu-btn" aria-label="菜单">&#9776;</button>
+
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <button id="new-chat-btn" class="btn-new-chat">+ 新对话</button>
+        </div>
+        <div id="conversation-list" class="conversation-list"></div>
+    </aside>
+
+    <main class="chat-main">
+        <div id="chat-messages" class="chat-messages">
+            <div id="empty-state" class="empty-state">
+                <div class="empty-icon">&#128187;</div>
+                <h2>C++ 学习助手</h2>
+                <p>输入你的第一个 C++ 问题，开始学习</p>
+                <div class="suggestion-list">
+                    <button class="suggestion" data-text="C++ 的指针是什么？怎么用？">C++ 的指针是什么？怎么用？</button>
+                    <button class="suggestion" data-text="for 循环和 while 循环有什么区别？">for 循环和 while 循环有什么区别？</button>
+                    <button class="suggestion" data-text="帮我看看这段代码哪里错了">帮我看看这段代码哪里错了</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-input-area">
+            <textarea
+                id="message-input"
+                placeholder="输入你的 C++ 问题，Ctrl+Enter 发送，Enter 换行..."
+                rows="1"
+                disabled
+            ></textarea>
+            <button id="send-btn" class="btn-send" disabled>发送</button>
+        </div>
+    </main>
+
+    {% if not has_api_key %}
+    <div id="config-warning" class="config-warning">
+        &#9888;&#65039; 请先配置 <code>config.json</code> 中的 <code>api_key</code>
+    </div>
+    {% endif %}
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
