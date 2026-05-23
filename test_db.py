@@ -114,6 +114,36 @@ def test_get_conversations_ordered():
         os.unlink(tmp_path)
 
 
+def test_get_conversations_empty():
+    """空数据库应返回空列表"""
+    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
+        tmp_path = f.name
+    try:
+        original = db.DB_PATH
+        db.DB_PATH = type(db.DB_PATH)(tmp_path)
+        db.init_db()
+        convs = db.get_conversations()
+        assert convs == []
+    finally:
+        db.DB_PATH = original
+        os.unlink(tmp_path)
+
+
+def test_get_nonexistent_conversation():
+    """查询不存在的对话应返回 None"""
+    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
+        tmp_path = f.name
+    try:
+        original = db.DB_PATH
+        db.DB_PATH = type(db.DB_PATH)(tmp_path)
+        db.init_db()
+        result = db.get_conversation("nonexistent_id")
+        assert result is None
+    finally:
+        db.DB_PATH = original
+        os.unlink(tmp_path)
+
+
 if __name__ == "__main__":
     test_init_db_creates_tables()
     test_create_and_get_conversation()
@@ -121,4 +151,6 @@ if __name__ == "__main__":
     test_delete_conversation_cascades_messages()
     test_update_title()
     test_get_conversations_ordered()
+    test_get_conversations_empty()
+    test_get_nonexistent_conversation()
     print("全部测试通过")
