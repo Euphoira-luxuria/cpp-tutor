@@ -110,4 +110,5 @@ if __name__ == "__main__":
     else:
         print("[OK] API Key 已配置")
     print("C++ 学习助手启动: http://localhost:5002")
-    app.run(debug=False, port=5002)
+    port = int(os.environ.get("PORT", 5002))
+    app.run(debug=False, host="0.0.0.0", port=port)

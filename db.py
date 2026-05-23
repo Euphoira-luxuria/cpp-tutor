@@ -1,10 +1,11 @@
+import os
 import sqlite3
 import uuid
 from contextlib import closing
 from datetime import datetime
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent / "data.db"
+DB_PATH = Path(os.environ.get("DATABASE_PATH", Path(__file__).parent / "data.db"))
 
 
 def get_db():
