@@ -27,6 +27,14 @@ def index():
     return render_template("index.html", has_api_key=HAS_API_KEY)
 
 
+@app.route("/api/health")
+def health():
+    return jsonify({
+        "api_key_configured": HAS_API_KEY,
+        "db_ok": True,
+    })
+
+
 # ── 对话列表 ──────────────────────────────────────────────
 
 @app.route("/api/conversations", methods=["GET", "POST"])
