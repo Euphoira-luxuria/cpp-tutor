@@ -1,6 +1,4 @@
 import os
-import json
-from pathlib import Path
 from flask import (
     Flask, render_template, request, jsonify, Response, stream_with_context,
 )
@@ -11,15 +9,9 @@ import deepseek
 app = Flask(__name__)
 CORS(app)
 
-# 启动时初始化数据库
 db.init_db()
 
-# 检查 API key
-CONFIG_FILE = Path(__file__).parent / "config.json"
-HAS_API_KEY = bool(
-    os.environ.get("DEEPSEEK_API_KEY")
-    or (CONFIG_FILE.exists() and json.load(open(CONFIG_FILE, "r")).get("api_key"))
-)
+HAS_API_KEY = bool(os.environ.get("DEEPSEEK_API_KEY"))
 
 
 @app.route("/")
@@ -111,10 +103,7 @@ def chat():
 
 if __name__ == "__main__":
     if not HAS_API_KEY:
-        print(
-            "[!] 未检测到 API Key，请先配置 config.json 或设置 "
-            "环境变量 DEEPSEEK_API_KEY"
-        )
+        print("[!] 未检测到 API Key，请设置环境变量 DEEPSEEK_API_KEY")
     else:
         print("[OK] API Key 已配置")
     print("C++ 学习助手启动: http://localhost:5002")
