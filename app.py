@@ -1,4 +1,6 @@
 import os
+import json
+from pathlib import Path
 from flask import (
     Flask, render_template, request, jsonify, Response, stream_with_context,
 )
@@ -11,7 +13,11 @@ CORS(app)
 
 db.init_db()
 
-HAS_API_KEY = bool(os.environ.get("DEEPSEEK_API_KEY"))
+CONFIG_FILE = Path(__file__).parent / "config.json"
+HAS_API_KEY = bool(
+    os.environ.get("DEEPSEEK_API_KEY")
+    or (CONFIG_FILE.exists() and json.load(open(CONFIG_FILE, "r")).get("api_key"))
+)
 
 
 @app.route("/")

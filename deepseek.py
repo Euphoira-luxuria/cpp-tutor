@@ -1,5 +1,13 @@
 import os
+import json
+from pathlib import Path
 from openai import OpenAI
+
+CONFIG_FILE = Path(__file__).parent / "config.json"
+CONFIG = {}
+if CONFIG_FILE.exists():
+    with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+        CONFIG = json.load(f)
 
 SYSTEM_PROMPT = """你是 C++ 编程学习导师，负责帮助初学者理解 C++ 编程问题。
 
@@ -19,10 +27,10 @@ SYSTEM_PROMPT = """你是 C++ 编程学习导师，负责帮助初学者理解 C
 
 
 def get_client():
-    api_key = os.environ.get("DEEPSEEK_API_KEY")
-    base_url = os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
+    api_key = os.environ.get("DEEPSEEK_API_KEY") or CONFIG.get("api_key")
+    base_url = os.environ.get("DEEPSEEK_BASE_URL") or CONFIG.get("base_url", "https://api.deepseek.com")
     if not api_key:
-        raise RuntimeError("未配置 API Key，请设置环境变量 DEEPSEEK_API_KEY")
+        raise RuntimeError("未配置 API Key，请设置环境变量 DEEPSEEK_API_KEY 或 config.json")
     return OpenAI(api_key=api_key, base_url=base_url)
 
 
@@ -30,7 +38,7 @@ def stream_chat(messages):
     full_messages = [{"role": "system", "content": SYSTEM_PROMPT}] + messages[-20:]
 
     client = get_client()
-    model = os.environ.get("LLM_MODEL", "deepseek-chat")
+    model = os.environ.get("LLM_MODEL") or CONFIG.get("model", "deepseek-chat")
 
     response = client.chat.completions.create(
         model=model,
