@@ -30,14 +30,36 @@
             </div>
         </div>
 
-        <div class="chat-input-area">
+        <div id="code-review-panel" class="code-review-panel" style="display:none">
+            <div class="code-review-header">
+                <span>代码检查</span>
+                <button id="close-review-btn" class="btn-close-review">&times;</button>
+            </div>
             <textarea
-                id="message-input"
-                placeholder="输入你的 C++ 问题，Ctrl+Enter 发送，Enter 换行..."
-                rows="1"
-                disabled
+                id="code-input"
+                class="code-input"
+                placeholder="在此粘贴你的 C++ 代码，AI 会逐行检查语法错误、逻辑错误和代码风格问题..."
+                rows="8"
             ></textarea>
-            <button id="send-btn" class="btn-send" disabled>发送</button>
+            <div class="code-review-actions">
+                <span class="review-hint">Ctrl+Enter 开始检查</span>
+                <button id="review-code-btn" class="btn-review-code">开始检查</button>
+            </div>
+        </div>
+
+        <div class="chat-input-area">
+            <div class="input-area-top">
+                <button id="toggle-review-btn" class="btn-toggle-review" title="代码检查">检查代码</button>
+            </div>
+            <div class="input-row">
+                <textarea
+                    id="message-input"
+                    placeholder="输入你的 C++ 问题，Ctrl+Enter 发送，Enter 换行..."
+                    rows="1"
+                    disabled
+                ></textarea>
+                <button id="send-btn" class="btn-send" disabled>发送</button>
+            </div>
         </div>
     </main>
 

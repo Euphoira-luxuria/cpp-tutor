@@ -12,6 +12,11 @@ const chatMessages = document.getElementById("chat-messages");
 const emptyState = document.getElementById("empty-state");
 const messageInput = document.getElementById("message-input");
 const sendBtn = document.getElementById("send-btn");
+const codeReviewPanel = document.getElementById("code-review-panel");
+const codeInput = document.getElementById("code-input");
+const toggleReviewBtn = document.getElementById("toggle-review-btn");
+const reviewCodeBtn = document.getElementById("review-code-btn");
+const closeReviewBtn = document.getElementById("close-review-btn");
 
 // ── 初始化 ────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
@@ -25,6 +30,13 @@ function bindEvents() {
     messageInput.addEventListener("input", onInputChange);
     messageInput.addEventListener("keydown", onKeyDown);
     sendBtn.addEventListener("click", sendMessage);
+
+    // 代码检查面板
+    toggleReviewBtn.addEventListener("click", toggleCodeReview);
+    closeReviewBtn.addEventListener("click", closeCodeReview);
+    reviewCodeBtn.addEventListener("click", reviewCode);
+    codeInput.addEventListener("keydown", onCodeInputKeyDown);
+    codeInput.addEventListener("input", onCodeInputChange);
 
     // 点击建议问题
     document.querySelectorAll(".suggestion").forEach(btn => {
@@ -295,4 +307,123 @@ function appendMessage(role, content) {
     chatMessages.appendChild(msgEl);
     chatMessages.scrollTop = chatMessages.scrollHeight;
     return msgEl;
+}
+
+// ── 代码检查 ──────────────────────────────────────────────
+
+function toggleCodeReview() {
+    const show = codeReviewPanel.style.display === "none";
+    codeReviewPanel.style.display = show ? "block" : "none";
+    toggleReviewBtn.classList.toggle("active", show);
+    if (show) {
+        codeInput.focus();
+        reviewCodeBtn.disabled = !codeInput.value.trim();
+    }
+}
+
+function closeCodeReview() {
+    codeReviewPanel.style.display = "none";
+    toggleReviewBtn.classList.remove("active");
+    codeInput.value = "";
+    reviewCodeBtn.disabled = true;
+}
+
+function onCodeInputChange() {
+    reviewCodeBtn.disabled = !codeInput.value.trim();
+}
+
+function onCodeInputKeyDown(e) {
+    if (e.key === "Enter" && e.ctrlKey) {
+        e.preventDefault();
+        reviewCode();
+    }
+}
+
+async function reviewCode() {
+    const code = codeInput.value.trim();
+    if (!code || isStreaming) return;
+
+    const lang = detectCpp(code) ? "cpp" : "";
+    const message = `请帮我检查以下 C++ 代码，找出所有错误（编译错误、逻辑错误、内存问题、未定义行为），按严重程度分类标注，并给出修复建议：\n\n\`\`\`${lang}\n${code}\n\`\`\``;
+
+    if (!currentConversationId) {
+        await createConversation();
+    }
+
+    closeCodeReview();
+    reviewCodeBtn.disabled = true;
+
+    isStreaming = true;
+    sendBtn.disabled = true;
+    reviewCodeBtn.textContent = "检查中...";
+
+    const es = document.getElementById("empty-state");
+    if (es) es.remove();
+
+    appendMessage("user", `检查以下 C++ 代码：\n\n\`\`\`${lang}\n${code}\n\`\`\``);
+
+    const aiMsgDiv = appendMessage("assistant", "");
+    const bubble = aiMsgDiv.querySelector(".bubble");
+    bubble.classList.add("typing-cursor");
+
+    try {
+        const resp = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                conversation_id: currentConversationId,
+                message: message,
+            }),
+        });
+
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let fullContent = "";
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+
+            const lines = buffer.split("\n");
+            buffer = lines.pop() || "";
+
+            for (const line of lines) {
+                if (!line.startsWith("data: ")) continue;
+                try {
+                    const data = JSON.parse(line.slice(6));
+                    if (data.chunk) {
+                        fullContent += data.chunk;
+                        bubble.innerHTML = renderContent(fullContent);
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    } else if (data.done && data.title) {
+                        const conv = conversations.find(c => c.id === currentConversationId);
+                        if (conv) { conv.title = data.title; renderSidebar(); }
+                    } else if (data.error) {
+                        bubble.innerHTML = `<p style="color:#ef4444">${escapeHtml(data.error)}</p>`;
+                    }
+                } catch (_) {}
+            }
+        }
+    } catch (e) {
+        bubble.innerHTML = `<p style="color:#ef4444">网络错误：${escapeHtml(e.message)}</p>`;
+    }
+
+    bubble.classList.remove("typing-cursor");
+    isStreaming = false;
+    sendBtn.disabled = false;
+    reviewCodeBtn.textContent = "开始检查";
+    reviewCodeBtn.disabled = false;
+    codeInput.value = "";
+    messageInput.focus();
+}
+
+function detectCpp(code) {
+    const markers = [
+        "#include", "int main", "std::", "cout", "cin", "vector",
+        "template", "namespace", "class ", "struct ", "constexpr",
+        "nullptr", "auto ", "->", "<<", ">>"
+    ];
+    return markers.some(m => code.includes(m));
 }
