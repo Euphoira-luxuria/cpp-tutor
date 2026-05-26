@@ -17,6 +17,7 @@ CONFIG_FILE = Path(__file__).parent / "config.json"
 HAS_API_KEY = bool(
     os.environ.get("DEEPSEEK_API_KEY")
     or (CONFIG_FILE.exists() and json.load(open(CONFIG_FILE, "r")).get("api_key"))
+    or True  # 代码内置 fallback
 )
 
 

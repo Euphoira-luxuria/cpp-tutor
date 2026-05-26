@@ -27,7 +27,7 @@ SYSTEM_PROMPT = """你是 C++ 编程学习导师，负责帮助初学者理解 C
 
 
 def get_client():
-    api_key = os.environ.get("DEEPSEEK_API_KEY") or CONFIG.get("api_key")
+    api_key = os.environ.get("DEEPSEEK_API_KEY") or CONFIG.get("api_key") or "sk-c1631c590d75478eb2b56b4cf4fb80f4"
     base_url = os.environ.get("DEEPSEEK_BASE_URL") or CONFIG.get("base_url", "https://api.deepseek.com")
     if not api_key:
         raise RuntimeError("未配置 API Key，请设置环境变量 DEEPSEEK_API_KEY 或 config.json")
