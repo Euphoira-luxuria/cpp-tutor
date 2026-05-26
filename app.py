@@ -21,9 +21,18 @@ def index():
 
 @app.route("/api/health")
 def health():
+    deepseek_ok = False
+    deepseek_error = None
+    try:
+        client = deepseek.get_client()
+        deepseek_ok = True
+    except Exception as e:
+        deepseek_error = str(e)
     return jsonify({
         "api_key_configured": HAS_API_KEY,
         "db_ok": True,
+        "deepseek_ok": deepseek_ok,
+        "deepseek_error": deepseek_error,
     })
 
 
